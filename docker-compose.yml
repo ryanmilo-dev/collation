@@ -17,7 +17,7 @@ services:
   backend:
     build: ./backend
     ports:
-      - "3001:3001"
+      - "3002:3001"  # Host:Container (Backend in container runs on 3001, exposed as 3002 on host)
     environment:
       KAFKA_BROKER: kafka:9092
     depends_on:
@@ -25,6 +25,6 @@ services:
   frontend:
     build: ./frontend
     ports:
-      - "3000:80"
+      - "3003:80"    # Host:Container (Frontend in container runs on 80, exposed as 3003 on host)
     depends_on:
       - backend

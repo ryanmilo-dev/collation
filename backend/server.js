@@ -45,4 +45,4 @@ app.get('/send/:msg', async (req, res) => {
 app.use(express.static('build'));
 
 // Start server
-server.listen(3001, () => console.log('Server started on http://localhost:3001'));
+server.listen(3003, () => console.log('Server started on http://localhost:3003'));
