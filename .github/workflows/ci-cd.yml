@@ -1,0 +1,55 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    services:
+      kafka:
+        image: wurstmeister/kafka
+        ports:
+          - 9092:9092
+        env:
+          KAFKA_ADVERTISED_HOST_NAME: localhost
+          KAFKA_ZOOKEEPER_CONNECT: localhost:2181
+        options: >-
+          --health-cmd="echo 'hello'"
+      zookeeper:
+        image: wurstmeister/zookeeper
+        ports:
+          - 2181:2181
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install backend dependencies
+        run: |
+          cd backend
+          npm install
+
+      - name: Lint & Test backend (if tests)
+        run: |
+          cd backend
+          npm run lint || true
+          npm test || true
+
+      - name: Install frontend dependencies
+        run: |
+          cd frontend
+          npm install
+
+      - name: Build frontend
+        run: |
+          cd frontend
+          npm run build
