@@ -9,20 +9,6 @@ on:
 jobs:
   build-test:
     runs-on: ubuntu-latest
-    services:
-      kafka:
-        image: wurstmeister/kafka
-        ports:
-          - 9092:9092
-        env:
-          KAFKA_ADVERTISED_HOST_NAME: localhost
-          KAFKA_ZOOKEEPER_CONNECT: localhost:2181
-        options: >-
-          --health-cmd="echo 'hello'"
-      zookeeper:
-        image: wurstmeister/zookeeper
-        ports:
-          - 2181:2181
 
     steps:
       - name: Checkout code
