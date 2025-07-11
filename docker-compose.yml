@@ -24,7 +24,7 @@ services:
   frontend:
     build: ./frontend
     ports:
-      - "3003:3004"  # Host:Container, adjust host port if you want
+      - "3003:3000"  # Host:Container, adjust host port if you want
     environment:
       - NODE_ENV=production
     depends_on:
