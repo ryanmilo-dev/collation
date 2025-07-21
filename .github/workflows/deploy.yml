@@ -34,46 +34,47 @@ jobs:
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
         run: |
           ssh -o StrictHostKeyChecking=no $EC2_USER@$EC2_HOST '
-            set -e
+set -e
 
-            # Clone or update repo
-            if [ ! -d ~/collation ]; then
-              git clone https://github.com/ryanmilo-dev/collation.git ~/collation
-            fi
-            cd ~/collation
-            git pull origin main
+# Clone or update repo
+if [ ! -d ~/collation ]; then
+  git clone https://github.com/ryanmilo-dev/collation.git ~/collation
+fi
+cd ~/collation
+git pull origin main
 
-            # Write the .env file
-            cat > .env <<EOF
-            POSTGRES_DB=${POSTGRES_DB}
-            POSTGRES_USER=${POSTGRES_USER}
-            POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-            POSTGRES_URL=${POSTGRES_URL}
-            MONGO_INITDB_DATABASE=${MONGO_INITDB_DATABASE}
-            MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
-            MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
-            MONGO_URL=${MONGO_URL}
-            REDIS_PASSWORD=${REDIS_PASSWORD}
-            REDIS_URL=${REDIS_URL}
-            JWT_SECRET=${JWT_SECRET}
-            NODE_ENV=production
-            EOF
+# Write the .env file
+cat > .env <<EOF
+POSTGRES_DB=${POSTGRES_DB}
+POSTGRES_USER=${POSTGRES_USER}
+POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+POSTGRES_URL=${POSTGRES_URL}
+MONGO_INITDB_DATABASE=${MONGO_INITDB_DATABASE}
+MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
+MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
+MONGO_URL=${MONGO_URL}
+REDIS_PASSWORD=${REDIS_PASSWORD}
+REDIS_URL=${REDIS_URL}
+JWT_SECRET=${JWT_SECRET}
+NODE_ENV=production
+EOF
 
-            # Ensure Node.js is installed for pre-up script
-            if ! command -v node > /dev/null 2>&1; then
-              curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
-              sudo apt-get install -y nodejs
-            fi
+# Ensure Node.js is installed for pre-up script
+if ! command -v node > /dev/null 2>&1; then
+  curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
+  sudo apt-get install -y nodejs
+fi
 
-            # Pull latest docker images (safe to do before pre-up)
-            docker compose pull || true
+# Pull latest docker images (safe to do before pre-up)
+docker compose pull || true
 
-            # Run pre-up script (enables BuildKit, downloads dashboards)
-            node scripts/pre-up.js
+# Run pre-up script (enables BuildKit, downloads dashboards)
+node scripts/pre-up.js
 
-            # Remove old override file (optional)
-            rm -f docker-compose.override.yml
+# Remove old override file (optional)
+rm -f docker-compose.override.yml
 
-            # Start/restart services with BuildKit (if not globally enabled)
-            docker compose up --build -d
-          '
+# Start/restart services with BuildKit (if not globally enabled)
+docker compose up --build -d
+'
+
