@@ -124,17 +124,18 @@ function runKafkaConsumer() {
 // --- Health Endpoint ---
 app.get('/health', async (req, res) => {
   // These checks are fast (just pings), but could be optimized/cached if needed
-  await checkPostgres();
-  await checkMongo();
-  await checkRedis();
+  //await checkPostgres();
+  //await checkMongo();
+  //await checkRedis();
 
-  const allOk = kafkaReady && postgresReady && mongoReady && redisReady;
+  //const allOk = kafkaReady && postgresReady && mongoReady && redisReady;
+  const allOk = kafkaReady; //&& postgresReady && mongoReady && redisReady;
   res.status(allOk ? 200 : 500).json({
     status: allOk ? 'ok' : 'error',
-    kafka: kafkaReady ? 'connected' : 'not connected',
-    postgres: postgresReady ? 'connected' : 'not connected',
-    mongo: mongoReady ? 'connected' : 'not connected',
-    redis: redisReady ? 'connected' : 'not connected',
+    kafka: kafkaReady ? 'connected' : 'not connected'//,
+    //postgres: postgresReady ? 'connected' : 'not connected',
+    //mongo: mongoReady ? 'connected' : 'not connected',
+    //redis: redisReady ? 'connected' : 'not connected',
   });
 });
 
@@ -160,9 +161,9 @@ app.use(express.static('build'));
 (async () => {
   try {
     await Promise.all([
-      checkPostgres(),
-      checkMongo(),
-      checkRedis(),
+      //checkPostgres(),
+      //checkMongo(),
+      //checkRedis(),
       checkKafkaConnection(),
     ]);
     runKafkaConsumer();
@@ -179,10 +180,10 @@ app.use(express.static('build'));
 process.on('SIGINT', async () => {
   // Clean shutdown
   try {
-    if (redisClient) await redisClient.quit();
+    //if (redisClient) await redisClient.quit();
     await producer.disconnect();
     await consumer.disconnect();
-    await mongoose.disconnect();
+    //await mongoose.disconnect();
     console.log('Clean shutdown.');
     process.exit(0);
   } catch (e) {
