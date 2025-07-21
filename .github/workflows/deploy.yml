@@ -69,7 +69,7 @@ jobs:
             # Run pre-up script (enables BuildKit, downloads dashboards)
             node scripts/pre-up.js
 
-            # Remove old override file (optional)
+            # Remove old override file
             rm -f docker-compose.override.yml
 
             # Start/restart services with BuildKit (if not globally enabled)
