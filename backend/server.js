@@ -2,9 +2,9 @@ const express = require('express');
 const { Kafka } = require('kafkajs');
 const http = require('http');
 const socketIo = require('socket.io');
-const { Client: PgClient } = require('pg');
-const mongoose = require('mongoose');
-const Redis = require('redis');
+//const { Client: PgClient } = require('pg');
+//const mongoose = require('mongoose');
+//const Redis = require('redis');
 
 const app = express();
 const server = http.createServer(app);
@@ -44,6 +44,7 @@ let kafkaReady = false;
 
 // --- Postgres ---
 let postgresReady = false;
+/*
 async function checkPostgres() {
   try {
     const client = new PgClient({ connectionString: POSTGRES_URL });
@@ -57,9 +58,10 @@ async function checkPostgres() {
     console.error('❌ Postgres not available:', err.message);
   }
 }
-
+*/
 // --- MongoDB ---
 let mongoReady = false;
+/*
 async function checkMongo() {
   try {
     // Avoid multiple connects in dev hot reloads
@@ -73,10 +75,11 @@ async function checkMongo() {
     console.error('❌ MongoDB not available:', err.message);
   }
 }
-
+*/
 // --- Redis ---
 let redisReady = false;
 let redisClient = null;
+/*
 async function checkRedis() {
   try {
     if (!redisClient) {
@@ -95,7 +98,7 @@ async function checkRedis() {
     console.error('❌ Redis not available:', err.message);
   }
 }
-
+*/
 // --- Kafka Connect and Consumer ---
 async function checkKafkaConnection() {
   try {
