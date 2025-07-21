@@ -1,26 +1,26 @@
 # Install dependencies only when needed
 FROM node:20-alpine AS deps
-WORKDIR /app
+WORKDIR /src/app
 COPY package.json package-lock.json* ./
-RUN npm install
+RUN npm ci
 
 # Rebuild the source code only when needed
 FROM node:20-alpine AS builder
-WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
+WORKDIR /src/app
+COPY --from=deps /src/app/node_modules ./node_modules
 COPY . .
 RUN npm run build
 
 # Production image, copy all the files and start the app
 FROM node:20-alpine AS runner
-WORKDIR /app
+WORKDIR /src/app
 
 ENV NODE_ENV production
 
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /src/app/public ./public
+COPY --from=builder /src/app/.next ./.next
+COPY --from=builder /src/app/node_modules ./node_modules
+COPY --from=builder /src/app/package.json ./package.json
 
 EXPOSE 3000
 

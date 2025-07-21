@@ -3,6 +3,7 @@ services:
     image: wurstmeister/zookeeper
     ports:
       - "2181:2181"
+
   kafka:
     image: wurstmeister/kafka
     ports:
@@ -13,19 +14,159 @@ services:
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'true'
     depends_on:
       - zookeeper
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  mongo:
+    image: mongo:7
+    environment:
+      MONGO_INITDB_DATABASE: ${MONGO_INITDB_DATABASE}
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
+    volumes:
+      - mongodata:/data/db
+    ports:
+      - "27017:27017"
+
+  redis:
+    image: redis:7-alpine
+    command: redis-server --requirepass ${REDIS_PASSWORD}
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+    ports:
+      - "6379:6379"
+
   backend:
     build: ./backend
     ports:
-      - "3002:3001"  # Host:Container (Backend in container runs on 3001, exposed as 3002 on host)
+      - "3002:3001"
     environment:
+      NODE_ENV: ${NODE_ENV}
       KAFKA_BROKER: kafka:9092
+      POSTGRES_URL: ${POSTGRES_URL}
+      MONGO_URL: ${MONGO_URL}
+      REDIS_URL: ${REDIS_URL}
+      JWT_SECRET: ${JWT_SECRET}
     depends_on:
       - kafka
+      - postgres
+      - mongo
+      - redis
+
   frontend:
     build: ./frontend
     ports:
-      - "3003:3000"  # Host:Container, adjust host port if you want
+      - "3003:3000"
     environment:
-      - NODE_ENV=production
+      NODE_ENV: ${NODE_ENV}
     depends_on:
-      - backend     # Only if you have a backend service
+      - backend
+
+  pg_backup:
+    image: postgres:16-alpine
+    depends_on:
+      - postgres
+    entrypoint: >
+      sh -c "
+        apk add --no-cache curl &&
+        mkdir -p /backups &&
+        echo '0 1 * * * pg_dump -h postgres -U $$POSTGRES_USER $$POSTGRES_DB > /backups/backup-\$(date +\%F-\%H-\%M-\%S).sql' > /etc/crontabs/root &&
+        crond -f -L /dev/stdout
+      "
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - ./postgres-backups:/backups
+
+  mongo_backup:
+    image: mongo:7
+    depends_on:
+      - mongo
+    entrypoint: >
+      sh -c "
+        apt-get update && apt-get install -y cron &&
+        mkdir -p /db-backups &&
+        echo '0 2 * * * mongodump --host=mongo --username=$$MONGO_INITDB_ROOT_USERNAME --password=$$MONGO_INITDB_ROOT_PASSWORD --out=/db-backups/backup-\$(date +\%F-\%H-\%M-\%S)' > /etc/crontab &&
+        cron -f
+      "
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
+    volumes:
+      - ./mongo-backups:/db-backups
+
+  prometheus:
+    image: prom/prometheus
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+
+  grafana:
+    image: grafana/grafana
+    ports:
+      - "3004:3000"
+    depends_on:
+      - prometheus
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
+      - ./grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards
+      - ./grafana/dashboards:/var/lib/grafana/dashboards
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: "admin"      # Change as needed!
+
+  node_exporter:
+    image: prom/node-exporter
+    ports:
+      - "9100:9100"
+  kafka_exporter:
+    image: danielqsj/kafka-exporter:latest
+    ports:
+      - "9308:9308"
+    command: --kafka.server=kafka:9092
+    depends_on:
+      - kafka
+    restart: unless-stopped
+  postgres_exporter:
+    image: prometheuscommunity/postgres-exporter
+    environment:
+      DATA_SOURCE_NAME: "${POSTGRES_EXPORTER_URL}"
+    ports:
+      - "9187:9187"
+    depends_on:
+      - postgres
+
+  mongodb_exporter:
+    image: percona/mongodb_exporter:0.44.0
+    environment:
+      MONGODB_URI: "${MONGODB_EXPORTER_URL}"
+    command: ["--collect-all"]
+    ports:
+      - "9216:9216"
+    depends_on:
+       - mongo
+    restart: unless-stopped
+
+  redis_exporter:
+    image: oliver006/redis_exporter
+    environment:
+      REDIS_ADDR: "${REDIS_EXPORTER_URL}"
+    ports:
+      - "9121:9121"
+    depends_on:
+      - redis
+
+volumes:
+  pgdata:
+  mongodata:
+  grafana_data:

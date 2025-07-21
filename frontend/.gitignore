@@ -1,5 +1,3 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
 # dependencies
 /node_modules
 /.pnp
@@ -32,6 +30,16 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+
+# docker database backups and volumes
+postgres-backups/
+mongo-backups/
+prometheus-data/
+pgdata/
+mongodata/
+
+# docker logs
+docker-compose.log
 
 # vercel
 .vercel
