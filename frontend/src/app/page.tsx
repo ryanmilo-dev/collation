@@ -11,7 +11,7 @@ export default function Home() {
     const hostname = window.location.hostname;
     const protocol = window.location.protocol;
     // Use fixed port if Grafana is always on 3001, else use window.location.port
-    const grafanaPort = 3004; // change if needed
+    const grafanaPort = 3008; // change if needed
     // Or use the same port as the app: const grafanaPort = window.location.port;
     setGrafanaUrl(`${protocol}//${hostname}:${grafanaPort}/dashboards`);
   }, []);
@@ -31,7 +31,7 @@ export default function Home() {
           <li>Secrets managed via Github Actions secrets</li>
         </ul>
         <Link
-          href={(grafanaUrl == null ? 'http://localhost:3004' : grafanaUrl)}
+          href={(grafanaUrl == null ? 'http://localhost:3008' : grafanaUrl)}
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex items-center gap-2 px-5 py-2 rounded-xl bg-black text-white dark:bg-white dark:text-black text-base font-medium hover:bg-neutral-900 hover:dark:bg-neutral-200 transition"

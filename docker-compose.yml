@@ -114,7 +114,7 @@ services:
   grafana:
     image: grafana/grafana
     ports:
-      - "3004:3008"
+      - "3008:3002"
     depends_on:
       - prometheus
     volumes:
